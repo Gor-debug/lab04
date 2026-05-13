@@ -1,0 +1,60 @@
+cd ~
+git clone https://github.com/Gor-debug/lab03 projects/lab04
+cd projects/lab04
+git remote remove origin
+git remote add origin https://github.com/Gor-debug/lab04.git
+
+mkdir -p .github/workflows
+
+cat > .github/workflows/linux.yml <<'EOF'
+name: Linux CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        compiler: [gcc, clang]
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure CMake
+        env:
+          CC: ${{ matrix.compiler }}
+          CXX: ${{ (matrix.compiler == 'clang') && 'clang++' || 'g++' }}
+        run: cmake -B build -S .
+      - name: Build
+        run: cmake --build build
+EOF
+
+cat > .github/workflows/windows.yml <<'EOF'
+name: Windows CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Configure CMake
+        run: cmake -B build -S .
+      - name: Build
+        run: cmake --build build
+EOF
+
+BADGE="[![CI Linux](https://github.com/Gor-debug/lab04/actions/workflows/linux.yml/badge.svg)](https://github.com/Gor-debug/lab04/actions/workflows/linux.yml)"
+echo "$BADGE" >> README.md
+
+git add .
+git commit -m "added workflows and badge"
+git push origin main
